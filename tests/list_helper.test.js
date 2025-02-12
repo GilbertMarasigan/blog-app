@@ -162,3 +162,14 @@ describe('mostBlogs', () => {
     assert.deepEqual(result, authorWithMostBlogs)
   }
 })
+
+describe('mostLikes', () => {
+  test('when Edsger W. Dijkstra has 17 (the most likes)'), () => {
+    const result = listHelper.mostLikes(listWithMultipleBlogs)
+    const mostLikedAuthor = {
+      author: "Edsger W. Dijkstra",
+      likes: 17
+    }
+    assert.deepEqual(result, mostLikedAuthor)
+  }
+})
