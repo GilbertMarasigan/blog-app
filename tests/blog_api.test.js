@@ -7,6 +7,7 @@ const app = require('../app')
 const api = supertest(app)
 
 const helper = require('./test_helper')
+const blog = require('../models/blog')
 
 beforeEach(async () => {
     console.log('Starting beforeEach')
@@ -89,7 +90,7 @@ test('verify that if the likes property is missing from the request, it will def
 
 })
 
-test.only('new blog entries does not have title or url returns 400 Bad Request', async () => {
+test('new blog entries does not have title or url returns 400 Bad Request', async () => {
     const newBlog = {
         "title": "The new test blog",
         "author": "Gilbert Testmaster"
@@ -100,6 +101,27 @@ test.only('new blog entries does not have title or url returns 400 Bad Request',
         .send(newBlog)
         .expect(400)
         .expect('Content-Type', /application\/json/)
+})
+
+test.only('delete single blog post resource', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    console.log('blogsAtStart', blogsAtStart)
+    console.log('blogToDelete', blogToDelete)
+    console.log(`/api/blogs/${blogToDelete.id}`)
+
+    await api  
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    console.log('blogsAtEnd', blogsAtEnd)
+
+    assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length - 1)
+
+    const contents = blogsAtEnd.map(r => r.title)
+    assert(!contents.includes(blogToDelete.title))
 })
 
 after(async () => {
