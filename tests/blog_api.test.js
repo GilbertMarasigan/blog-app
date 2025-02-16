@@ -40,8 +40,8 @@ test('verify that the unique identifier property of the blog posts is named id',
     });
 })
 
-test.only('successful post adds one to the blog', async () => {
-    const newBlog =  {
+test('successful post adds one to the blog', async () => {
+    const newBlog = {
         "title": "The new test blog",
         "author": "Gilbert Testmaster",
         "url": "test.com",
@@ -63,6 +63,43 @@ test.only('successful post adds one to the blog', async () => {
 
     assert(contents.includes('The new test blog'))
 
+})
+
+test('verify that if the likes property is missing from the request, it will default to the value 0', async () => {
+
+    const newBlog = {
+        "title": "The new test blog",
+        "author": "Gilbert Testmaster",
+        "url": "test.com",
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const response = await api.get('/api/blogs')
+
+    const blog = response.body.find(blog => blog.title === 'The new test blog')
+    console.log('blog', blog)
+
+    assert.ok(newBlog.likes === undefined, 'not an undefined sample');
+    assert.strictEqual(blog.likes, 0, 'default like should be 0');
+
+})
+
+test.only('new blog entries does not have title or url returns 400 Bad Request', async () => {
+    const newBlog = {
+        "title": "The new test blog",
+        "author": "Gilbert Testmaster"
+    }
+    
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
 })
 
 after(async () => {

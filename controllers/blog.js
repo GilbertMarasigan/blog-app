@@ -17,6 +17,12 @@ blogsRouter.post('/', (request, response, next) => {
         likes: body.likes
     })
 
+    blog.likes = blog.likes === undefined ? 0 : blog.likes
+
+    if(blog.title === undefined || blog.url === undefined){
+        response.status(400).json('Bad request')
+    }
+
     blog
         .save()
         .then(savedBlog => {
