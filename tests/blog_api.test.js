@@ -95,7 +95,7 @@ test('new blog entries does not have title or url returns 400 Bad Request', asyn
         "title": "The new test blog",
         "author": "Gilbert Testmaster"
     }
-    
+
     await api
         .post('/api/blogs')
         .send(newBlog)
@@ -103,7 +103,7 @@ test('new blog entries does not have title or url returns 400 Bad Request', asyn
         .expect('Content-Type', /application\/json/)
 })
 
-test.only('delete single blog post resource', async () => {
+test('delete single blog post resource', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
 
@@ -111,7 +111,7 @@ test.only('delete single blog post resource', async () => {
     console.log('blogToDelete', blogToDelete)
     console.log(`/api/blogs/${blogToDelete.id}`)
 
-    await api  
+    await api
         .delete(`/api/blogs/${blogToDelete.id}`)
         .expect(204)
 
@@ -122,6 +122,39 @@ test.only('delete single blog post resource', async () => {
 
     const contents = blogsAtEnd.map(r => r.title)
     assert(!contents.includes(blogToDelete.title))
+})
+
+test.only('updating an information of an individual blog post', async () => {
+
+    const updatedBlog = {
+        "title": "The new blog",
+        "author": "Gilbert Marasigan",
+        "url": "website.com",
+        "likes": 999,
+    }
+
+    const blogsAtStart = await helper.blogsInDb()
+
+    console.log('blogsAtStart', blogsAtStart)
+
+    const existingBlog = blogsAtStart.find(blog => blog.title === "The new blog")
+
+    console.log('blogsAtStart find', existingBlog)
+    console.log('blogsAtStart id', existingBlog.id)
+
+    await api
+        .patch(`/api/blogs/${existingBlog.id}`)
+        .send(updatedBlog)
+        .expect(200)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const newBlog = blogsAtEnd.find(blog => blog.id === existingBlog.id)  
+
+    console.log('newBlog', newBlog)
+    console.log('existingBlog', existingBlog)
+
+    console.log('blogsAtEnd', blogsAtEnd)
+
 })
 
 after(async () => {
