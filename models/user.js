@@ -4,10 +4,15 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         require: true,
-        unique: true
+        unique: true,
+        minlength: [3, 'Username ust be atleast 3 characters long'],
+        trim: true
     },
     name: String,
-    passwordHash: String,
+    passwordHash: {
+        type: String,
+        require: true,
+    },
     blogs: [
         {
             type: mongoose.Schema.Types.ObjectId,

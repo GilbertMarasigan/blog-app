@@ -124,7 +124,7 @@ test('delete single blog post resource', async () => {
     assert(!contents.includes(blogToDelete.title))
 })
 
-test.only('updating an information of an individual blog post', async () => {
+test('updating an information of an individual blog post', async () => {
 
     const updatedBlog = {
         "title": "The new blog",
@@ -154,6 +154,22 @@ test.only('updating an information of an individual blog post', async () => {
     console.log('existingBlog', existingBlog)
 
     console.log('blogsAtEnd', blogsAtEnd)
+
+})
+
+test.only('does not accept username or password shorter than 3 characters', async () => {
+    
+    const newUser = {
+        "username": "gp",
+        "name": "gilbert",
+        "password": "Gi"
+    }
+
+    await api
+    .post('/api/users')
+    .send(newUser)
+    .expect(400)
+    .expect('Content-Type', /application\/json/)
 
 })
 
