@@ -1,29 +1,5 @@
-const jwt = require('jsonwebtoken')
 const blogsRouter = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
-
-const protect = async (request, response, next) => {
-    let token;
-
-    if (request.headers.authorization && request.headers.authorization.startsWith('Bearer')) {
-        try {
-            token = request.headers.authorization.split(' ')[1]; // Get token after 'Bearer'
-
-            // Verify token
-            const decoded = jwt.verify(token, process.env.SECRET);
-
-            // 🔹 Await should now work properly
-            request.user = await User.findById(decoded.id).select('-password');
-
-            next(); // Ensure the request moves to the next middleware/route
-        } catch (error) {
-            return response.status(401).json({ error: 'Not authorized, invalid token' });
-        }
-    } else {
-        return response.status(401).json({ error: 'No token, authorization denied' });
-    }
-}
 
 blogsRouter.get('/', async (request, response) => {
     const blogs = await Blog.find({})
@@ -49,7 +25,7 @@ blogsRouter.patch('/:id', async (request, response) => {
 
 })
 
-blogsRouter.post('/', protect, (request, response, next) => {
+blogsRouter.post('/', (request, response, next) => {
 
     const body = request.body
 

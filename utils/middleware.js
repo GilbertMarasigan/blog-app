@@ -1,4 +1,31 @@
+const jwt = require('jsonwebtoken')
 const logger = require('./logger')
+const User = require('../models/user')
+
+const tokenExtractor = async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1]; // Extract token
+      const decoded = jwt.verify(token, process.env.SECRET);
+
+      req.user = await User.findById(decoded.id).select('-password');
+
+      if (!req.user) {
+        console.log('User not found in database');
+      } else {
+        console.log(`User authenticated: ${req.user.username}`);
+      }
+
+    } catch (error) {
+      console.log('Invalid token:', error.message);
+      req.user = null; // Set to null instead of blocking request
+    }
+  }
+
+  next();
+}
 
 const requestLogger = (request, response, next) => {
   logger.info('Method:', request.method)
@@ -27,5 +54,6 @@ const errorHandler = (error, request, response, next) => {
 module.exports = {
   requestLogger,
   unknownEndpoint,
-  errorHandler
+  errorHandler,
+  tokenExtractor
 }
