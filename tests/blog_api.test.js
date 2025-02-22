@@ -148,7 +148,7 @@ test('updating an information of an individual blog post', async () => {
         .expect(200)
 
     const blogsAtEnd = await helper.blogsInDb()
-    const newBlog = blogsAtEnd.find(blog => blog.id === existingBlog.id)  
+    const newBlog = blogsAtEnd.find(blog => blog.id === existingBlog.id)
 
     console.log('newBlog', newBlog)
     console.log('existingBlog', existingBlog)
@@ -157,8 +157,8 @@ test('updating an information of an individual blog post', async () => {
 
 })
 
-test.only('does not accept username or password shorter than 3 characters', async () => {
-    
+test('does not accept username or password shorter than 3 characters', async () => {
+
     const newUser = {
         "username": "gp",
         "name": "gilbert",
@@ -166,12 +166,33 @@ test.only('does not accept username or password shorter than 3 characters', asyn
     }
 
     await api
-    .post('/api/users')
-    .send(newUser)
-    .expect(400)
-    .expect('Content-Type', /application\/json/)
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
 
 })
+
+test.only('return 401 when token is invalid', async () => {
+
+    const token = 'random_false_token'
+
+    const newBlog = {
+        "title": "The bad token 2",
+        "author": "Gilbert M",
+        "url": "gilbert.com",
+        "likes": 222
+    }
+
+    await api
+        .post('/api/blogs')
+        .set('Authorization', token)
+        .send(newBlog)
+        .expect(401)
+        .expect('Content-Type', /application\/json/)
+
+})
+
 
 after(async () => {
     await mongoose.connection.close()
