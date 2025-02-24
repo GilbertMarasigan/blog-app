@@ -1,5 +1,15 @@
 const blogsRouter = require('express').Router()
+const jwt = require('jsonwebtoken')
 const Blog = require('../models/blog')
+const User = require('../models/user')
+
+const getTokenFrom = (request) => {
+    const authorization = request.get('authorization')
+    if (authorization && authorization.startsWith('Bearer')){
+        return authorization.replace('Bearer ', '')
+    }
+    return null
+}
 
 blogsRouter.get('/', async (request, response) => {
     const blogs = await Blog.find({})
@@ -41,41 +51,47 @@ blogsRouter.patch('/:id', async (request, response) => {
 
 })
 
-blogsRouter.post('/', (request, response, next) => {
-
-    const body = request.body
-
-    if (!request.user) {
-        return response.status(401).json({ error: 'User not authenticated' })
-    }
-
-    const blog = new Blog({
-        title: body.title,
-        author: body.author,
-        url: body.url,
-        likes: body.likes || 0,
-        user: {
-            username: request.user.username,
-            name: request.user.name,
-            id: request.user._id
+blogsRouter.post('/', async (request, response, next) => {
+    try {
+        const token = getTokenFrom(request)
+        if (!token) {
+            return response.status(401).json({ error: 'Token missing' })
         }
 
-    })
+        const decodedToken = jwt.verify(token, process.env.SECRET)
+        if (!decodedToken.id) {
+            return response.status(401).json({ error: 'Token invalid' })
+        }
 
-    blog.likes = blog.likes === undefined ? 0 : blog.likes
+        console.log('decodedToken.id', decodedToken.id)
 
-    if (blog.title === undefined || blog.url === undefined) {
-        response.status(400).json('Bad request')
-    }
+        const user = await User.findById(decodedToken.id)
+        if (!user) {
+            return response.status(404).json({ error: 'User not found' })
+        }
 
+        if (!request.body.title || !request.body.url) {
+            return response.status(400).json({ error: 'Title and URL are required' })
+        }
 
-    blog
-        .save()
-        .then(savedBlog => {
-            response.status(201).json(savedBlog)
+        const blog = new Blog({
+            title: request.body.title,
+            author: request.body.author,
+            url: request.body.url,
+            likes: request.body.likes || 0,
+            user: {
+                username: user.username,
+                name: user.name,
+                id: user._id
+            }
         })
-        .catch(error => next(error))
 
+        const savedBlog = await blog.save()
+        response.status(201).json(savedBlog)
+
+    } catch (error) {
+        next(error)
+    }
 })
 
 module.exports = blogsRouter
